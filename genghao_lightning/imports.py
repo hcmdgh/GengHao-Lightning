@@ -34,7 +34,7 @@ import pandas as pd
 IntArray = FloatArray = BoolArray = ndarray
 # [END]
 
-# [BEGIN] Torch相关
+# [BEGIN] PyTorch相关
 import torch
 import torch.backends.cudnn
 import torch.nn as nn
@@ -54,4 +54,8 @@ import wandb
 
 IntTensor = FloatTensor = BoolTensor = FloatScalarTensor = SparseTensor = Tensor
 IntArrayTensor = FloatArrayTensor = BoolArrayTensor = Union[Tensor, ndarray]
+# [END]
+
+# [BEGIN] DGL相关
+import dgl 
 # [END]

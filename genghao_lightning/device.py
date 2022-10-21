@@ -2,11 +2,24 @@ from .imports import *
 
 __all__ = [
     'auto_select_gpu', 
+    'get_device', 
 ]
+
+_device = None 
+
+
+def get_device() -> torch.device:
+    assert _device is not None 
+    
+    return _device 
 
 
 def auto_select_gpu(use_gpu: bool = True) -> torch.device:
     global _device 
+
+    # 只设置一次device
+    if _device is not None:
+        return _device
 
     if not use_gpu:
         _device = torch.device('cpu')

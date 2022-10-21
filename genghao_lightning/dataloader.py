@@ -1,22 +1,34 @@
 from .imports import * 
 
 __all__ = [
+    'AbstractDataLoader',
     'DataLoader',
-    'NoBatchDataLoader',
+    'SingleBatchDataLoader',
 ]
 
 
-class DataLoader:
+class AbstractDataLoader:
+    def __init__(self):
+        pass
+    
+    def num_steps(self) -> int:
+        raise NotImplementedError
+    
+    def __iter__(self) -> Iterator[dict[str, Any]]:
+        raise NotImplementedError
+
+
+class DataLoader(AbstractDataLoader):
     def __init__(self,
                  dataset: dict[str, ndarray],
                  batch_size: int,
-                 shuffle: bool,
-                 drop_last: bool = False):
+                 shuffle: bool):
+        super().__init__()
+        
+        assert dataset 
         self.dataset = dataset 
         self.batch_size = batch_size 
         self.shuffle = shuffle 
-        self.drop_last = drop_last 
-        assert not drop_last
         
         self.N = -1 
         
@@ -29,10 +41,9 @@ class DataLoader:
                 assert self.N == len(v)
 
     def num_steps(self) -> int:
-        if self.batch_size > 0:
-            return math.ceil(self.N / self.batch_size) 
-        else:
-            raise AssertionError 
+        assert self.batch_size > 0
+        
+        return math.ceil(self.N / self.batch_size) 
                 
     def __iter__(self) -> Iterator[dict[str, ndarray]]:
         if self.shuffle:
@@ -52,8 +63,16 @@ class DataLoader:
             yield batch_dict
 
 
-class NoBatchDataLoader:
+class SingleBatchDataLoader(AbstractDataLoader):
     def __init__(self,
                  dataset: dict[str, Any]):
+        super().__init__()
+                
+        assert dataset 
         self.dataset = dataset 
         
+    def num_steps(self) -> int:
+        return 1 
+    
+    def __iter__(self) -> Iterator[dict[str, Any]]:
+        yield self.dataset

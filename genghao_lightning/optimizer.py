@@ -5,10 +5,10 @@ __all__ = [
 ]
 
 
-def create_optimizer(name: str, 
+def create_optimizer(type: str, 
                      param: dict[str, Any],
                      model: nn.Module) -> optim.Optimizer:
-    if name == 'Adam':
+    if type == 'Adam':
         lr = param['lr']
         weight_decay = param.get('weight_decay', 0.)
         
