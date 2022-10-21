@@ -1,3 +1,3 @@
-# Geng Lightning
+# GengHao-Lightning
 
-PyTorch Lightning太难用了QvQ
+PyTorch Lightning太难用了，于是我开发了GengHao Lightning！
