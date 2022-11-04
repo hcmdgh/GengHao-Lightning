@@ -1,8 +1,8 @@
-from .imports import * 
-from .device import * 
-from .dataloader import *
-from .optimizer import * 
-from .metric import * 
+from ..imports import * 
+from ..device import * 
+from ..dataloader import *
+from ..optimizer import * 
+from ..metric import * 
 
 from basic_util import * 
 
@@ -22,30 +22,11 @@ class MultiClassClassificationTask:
         self.use_gpu = use_gpu 
         self.device = auto_select_gpu(use_gpu=use_gpu)
         self.model = model.to(self.device)
+        self.model.device = self.device 
 
         if init_log_:
             init_log() 
             
-    def convert_batch(self, 
-                      batch: dict[str, Any]) -> dict[str, Any]:
-        """
-        将NumPy的Batch转换为Tensor，并移入GPU。
-        """
-        converted_batch = dict() 
-        
-        for k, v in batch.items():
-            if isinstance(v, ndarray):
-                if v.dtype != object:
-                    v = torch.from_numpy(v).to(self.device)
-            elif isinstance(v, Tensor):
-                v = v.to(self.device)
-            else:
-                pass 
-            
-            converted_batch[k] = v
-            
-        return converted_batch             
-
     def train_and_eval(
         self,
         *, 
@@ -73,12 +54,22 @@ class MultiClassClassificationTask:
             loss_list = [] 
             
             for step, batch in enumerate(tqdm(train_dataloader, total=num_steps, desc='Training', disable=not tqdm_step or num_steps <= 5)):
-                batch = self.convert_batch(batch=batch)
+                batch = to_device(batch)
                 
-                train_res = train_step(model=self.model, batch=batch)
-                pred = train_res['pred']
-                target = train_res['target']
-                loss = F.cross_entropy(input=pred, target=target)
+                train_res = train_step(model=self.model, **batch)
+                
+                # 如果用户返回了pred和target，则计算交叉熵损失
+                if 'pred' in train_res:
+                    pred = train_res['pred']
+                    target = train_res['target']
+                    loss = F.cross_entropy(input=pred, target=target)
+
+                # 用户也可以直接返回loss
+                elif 'loss' in train_res:
+                    loss = train_res['loss']
+                    
+                else:
+                    raise AssertionError
                 
                 optimizer.zero_grad()
                 loss.backward() 
@@ -98,10 +89,10 @@ class MultiClassClassificationTask:
                     step_target_list: list[IntArray] = []
                     
                     for step, batch in enumerate(tqdm(val_dataloader, total=num_steps, desc='Validating', disable=not tqdm_step or num_steps <= 5)):
-                        batch = self.convert_batch(batch=batch)
+                        batch = to_device(batch)
                         
                         with torch.no_grad():
-                            val_res = val_step(model=self.model, batch=batch)
+                            val_res = val_step(model=self.model, **batch)
                         
                         pred = val_res['pred']
                         target = val_res['target']
@@ -132,10 +123,10 @@ class MultiClassClassificationTask:
                     step_target_list: list[IntArray] = []
                     
                     for step, batch in enumerate(tqdm(test_dataloader, total=num_steps, desc='Testing', disable=not tqdm_step or num_steps <= 5)):
-                        batch = self.convert_batch(batch=batch)
+                        batch = to_device(batch)
                         
                         with torch.no_grad():
-                            test_res = test_step(model=self.model, batch=batch)
+                            test_res = test_step(model=self.model, **batch)
                         
                         pred = test_res['pred']
                         target = test_res['target']

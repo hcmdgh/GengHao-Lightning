@@ -1,30 +1,15 @@
 from .imports import * 
 
 __all__ = [
-    'AbstractDataLoader',
     'DataLoader',
-    'SingleBatchDataLoader',
 ]
 
 
-class AbstractDataLoader:
-    def __init__(self):
-        pass
-    
-    def num_steps(self) -> int:
-        raise NotImplementedError
-    
-    def __iter__(self) -> Iterator[dict[str, Any]]:
-        raise NotImplementedError
-
-
-class DataLoader(AbstractDataLoader):
+class DataLoader:
     def __init__(self,
                  dataset: dict[str, ndarray],
                  batch_size: int,
                  shuffle: bool):
-        super().__init__()
-        
         assert dataset 
         self.dataset = dataset 
         self.batch_size = batch_size 
@@ -61,18 +46,3 @@ class DataLoader(AbstractDataLoader):
                 batch_dict[k] = v 
                 
             yield batch_dict
-
-
-class SingleBatchDataLoader(AbstractDataLoader):
-    def __init__(self,
-                 dataset: dict[str, Any]):
-        super().__init__()
-                
-        assert dataset 
-        self.dataset = dataset 
-        
-    def num_steps(self) -> int:
-        return 1 
-    
-    def __iter__(self) -> Iterator[dict[str, Any]]:
-        yield self.dataset
