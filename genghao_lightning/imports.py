@@ -30,6 +30,7 @@ from tqdm import tqdm
 import numpy as np
 from numpy import ndarray
 import pandas as pd 
+import wandb 
 
 IntArray = FloatArray = BoolArray = ndarray
 # [END]

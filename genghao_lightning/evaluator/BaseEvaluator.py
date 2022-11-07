@@ -4,8 +4,9 @@ __all__ = [
 
 
 class BaseEvaluator:
-    def __init__(self):
-        pass
+    def __init__(self,
+                 use_wandb: bool = True):
+        self.use_wandb = use_wandb
     
     def eval_train_epoch(self, **kwargs):
         raise NotImplementedError
