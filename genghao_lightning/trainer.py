@@ -19,7 +19,8 @@ class FullBatchTrainer:
         use_gpu: bool = True,
         do_init_log: bool = True, 
         use_wandb: bool = True,
-        project_name: Optional[str] = '', 
+        project_name: Optional[str] = None, 
+        param_dict: Optional[dict[str, Any]] = None, 
     ):
         self.use_gpu = use_gpu 
         self.device = auto_select_gpu(use_gpu=use_gpu)
@@ -31,18 +32,21 @@ class FullBatchTrainer:
         if do_init_log:
             init_log() 
             
+        self.use_wandb = use_wandb
         if use_wandb:
             assert project_name 
             
-            wandb.init(project=project_name)
+            wandb.init(project=project_name, config=param_dict)
             
     def train_and_eval(
         self,
         *, 
         dataset: dict[str, Any],
         train_func: Callable,
+        after_train_func: Optional[Callable] = None, 
         val_func: Optional[Callable] = None, 
         test_func: Optional[Callable] = None, 
+        val_test_func: Optional[Callable] = None, 
         evaluator: BaseEvaluator,
         eval_interval: int = 1, 
         save_model_interval: int = -1, 
@@ -64,23 +68,33 @@ class FullBatchTrainer:
             optimizer.zero_grad()
             loss.backward() 
             optimizer.step() 
+            
+            if after_train_func is not None:
+                after_train_func(epoch=epoch, model=self.model, **dataset)
 
             if epoch % eval_interval == 0:
                 self.model.eval()
                 
-                if val_func is not None:
-                    with torch.no_grad():
+                if val_test_func is not None:
+                    val_test_result = val_test_func(epoch=epoch, model=self.model, **dataset)
+                        
+                    evaluator.eval_val_epoch(epoch=epoch, **val_test_result['val'])
+                    evaluator.eval_test_epoch(epoch=epoch, **val_test_result['test'])
+                else:
+                    if val_func is not None:
                         val_result = val_func(epoch=epoch, model=self.model, **dataset)
+                            
+                        evaluator.eval_val_epoch(epoch=epoch, **val_result)
                         
-                    evaluator.eval_val_epoch(epoch=epoch, **val_result)
-                    
-                if test_func is not None:
-                    with torch.no_grad():
+                    if test_func is not None:
                         test_result = test_func(epoch=epoch, model=self.model, **dataset)
-                        
-                    evaluator.eval_test_epoch(epoch=epoch, **test_result)
+                            
+                        evaluator.eval_test_epoch(epoch=epoch, **test_result)
 
             if save_model_interval > 0 and epoch % save_model_interval == 0:
                 os.makedirs('./saved_model', exist_ok=True)
                 
                 torch.save(self.model.state_dict(), f"./saved_model/model_state_epoch_{epoch}.pt")
+
+        if self.use_wandb:
+            evaluator.summary() 

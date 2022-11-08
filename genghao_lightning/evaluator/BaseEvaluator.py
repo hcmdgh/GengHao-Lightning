@@ -25,3 +25,6 @@ class BaseEvaluator:
     
     def eval_test_step(self, **kwargs):
         raise NotImplementedError
+
+    def summary(self, **kwargs):
+        raise NotImplementedError
