@@ -20,10 +20,10 @@ class BaseEvaluator:
     def eval_train_step(self, **kwargs):
         raise NotImplementedError
     
-    def eval_val_step(self, **kwargs):
+    def eval_val_steps_in_one_epoch(self, **kwargs):
         raise NotImplementedError
     
-    def eval_test_step(self, **kwargs):
+    def eval_test_steps_in_one_epoch(self, **kwargs):
         raise NotImplementedError
 
     def summary(self, **kwargs):

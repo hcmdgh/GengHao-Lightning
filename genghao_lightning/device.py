@@ -4,6 +4,7 @@ __all__ = [
     'auto_select_gpu', 
     'get_device', 
     'to_device',
+    'to_numpy',
 ]
 
 _device = None 
@@ -62,6 +63,27 @@ def to_device(obj: Any) -> Any:
     elif isinstance(obj, dict):
         return {
             key: to_device(value)
+            for key, value in obj.items() 
+        }
+    else:
+        return obj 
+
+
+def to_numpy(obj: Any) -> Any:
+    if isinstance(obj, Tensor):
+        return obj.detach().cpu().numpy() 
+    elif isinstance(obj, ndarray):
+        return obj 
+    elif isinstance(obj, dgl.DGLGraph):
+        return obj.to('cpu')
+    elif isinstance(obj, list):
+        return [
+            to_numpy(item)
+            for item in obj 
+        ]
+    elif isinstance(obj, dict):
+        return {
+            key: to_numpy(value)
             for key, value in obj.items() 
         }
     else:

@@ -1,8 +1,8 @@
-from .imports import * 
-from .device import * 
-from .dataloader import * 
-from .evaluator import * 
-from .optimizer import * 
+from ..imports import * 
+from ..device import * 
+from ..dataloader import * 
+from ..evaluator import * 
+from ..optimizer import * 
 
 from basic_util import * 
 
@@ -26,7 +26,7 @@ class FullBatchTrainer:
         self.device = auto_select_gpu(use_gpu=use_gpu)
         self.model = model.to(self.device)
         
-        # 模型新增device属性，便于在模型内部访问device
+        # 为模型赋予device属性，便于在模型内部访问device
         self.model.device = self.device 
 
         if do_init_log:

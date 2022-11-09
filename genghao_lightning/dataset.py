@@ -4,7 +4,7 @@ from .device import *
 from basic_util import * 
 
 __all__ = [
-    'HeteroGraphDataset',
+    # 'HeteroGraphDataset',
 ]
 
 
@@ -13,6 +13,7 @@ class HeteroGraphDataset:
                  hg: dgl.DGLHeteroGraph,
                  use_gpu: bool = True,
                  mute: bool = False):
+        raise DeprecationWarning
         self.device = auto_select_gpu(use_gpu=use_gpu)
         self.hg = hg.to(self.device)
         

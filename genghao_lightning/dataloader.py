@@ -1,7 +1,7 @@
 from .imports import * 
 
 __all__ = [
-    'DataLoader',
+    # 'DataLoader',
 ]
 
 
@@ -10,7 +10,8 @@ class DataLoader:
                  dataset: dict[str, ndarray],
                  batch_size: int,
                  shuffle: bool):
-        assert dataset 
+        raise DeprecationWarning
+        assert dataset and batch_size >= 1 
         self.dataset = dataset 
         self.batch_size = batch_size 
         self.shuffle = shuffle 
@@ -26,8 +27,6 @@ class DataLoader:
                 assert self.N == len(v)
 
     def num_steps(self) -> int:
-        assert self.batch_size > 0
-        
         return math.ceil(self.N / self.batch_size) 
                 
     def __iter__(self) -> Iterator[dict[str, ndarray]]:
