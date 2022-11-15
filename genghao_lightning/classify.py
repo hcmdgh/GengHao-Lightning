@@ -22,12 +22,12 @@ def linear_classify(*,
                     use_tqdm: bool = True) -> dict[str, Any]:
     device = auto_select_gpu(use_gpu=use_gpu)
 
-    train_feat = train_feat.to(device)
-    train_label = train_label.to(device)
-    val_feat = val_feat.to(device)
-    val_label = val_label.to(device)
-    test_feat = test_feat.to(device)
-    test_label = test_label.to(device)
+    train_feat = train_feat.detach().to(device)
+    train_label = train_label.detach().to(device)
+    val_feat = val_feat.detach().to(device)
+    val_label = val_label.detach().to(device)
+    test_feat = test_feat.detach().to(device)
+    test_label = test_label.detach().to(device)
 
     feat_dim = train_feat.shape[-1]
 

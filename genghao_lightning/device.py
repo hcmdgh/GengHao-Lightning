@@ -1,5 +1,7 @@
 from .imports import * 
 
+from basic_util import * 
+
 __all__ = [
     'auto_select_gpu', 
     'get_device', 
@@ -16,15 +18,21 @@ def get_device() -> torch.device:
     return _device 
 
 
-def auto_select_gpu(use_gpu: bool = True) -> torch.device:
+def auto_select_gpu(use_gpu: bool = True,
+                    log: bool = True) -> torch.device:
     global _device 
 
     # 只设置一次device
     if _device is not None:
+        log_info(f"已设置设备：{_device}")
+        
         return _device
 
     if not use_gpu:
         _device = torch.device('cpu')
+        
+        log_info(f"已设置设备：{_device}")
+        
         return _device
     
     exe_res = os.popen('gpustat --json').read() 
@@ -42,6 +50,8 @@ def auto_select_gpu(use_gpu: bool = True) -> torch.device:
     gpu_infos.sort()
     
     _device = torch.device(f'cuda:{gpu_infos[0][1]}')
+    
+    log_info(f"已设置设备：{_device}")
     
     return _device 
 

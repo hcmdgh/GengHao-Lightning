@@ -56,8 +56,6 @@ class MiniBatchTrainer:
         num_epochs: int,
         tqdm_step: bool = True, 
     ):
-        device = get_device()
-        
         optimizer = create_optimizer(type=optimizer_type, param=optimizer_param, model=self.model)
 
         for epoch in range(1, num_epochs + 1):
@@ -67,10 +65,12 @@ class MiniBatchTrainer:
             loss_list = [] 
             
             for step, batch in enumerate(train_dataloader, start=1):
-                assert isinstance(batch, dict)
                 batch = to_device(batch)
                 
-                train_result = train_func(epoch=epoch, model=self.model, **batch)
+                if isinstance(batch, dict):
+                    train_result = train_func(epoch=epoch, step=step, model=self.model, batch=batch, **batch)
+                else:
+                    train_result = train_func(epoch=epoch, step=step, model=self.model, batch=batch)
                     
                 loss = evaluator.eval_train_step(epoch=epoch, step=step, num_steps=num_steps, **train_result)
                 loss_list.append(float(loss))
@@ -94,11 +94,14 @@ class MiniBatchTrainer:
                     step_data_dict: dict[int, dict[str, Any]] = dict() 
                     
                     for step, batch in enumerate(tqdm(val_dataloader, desc='Validating', disable=not tqdm_step), start=1):
-                        assert isinstance(batch, dict)
                         batch = to_device(batch)
+                
+                        if isinstance(batch, dict):
+                            val_result = val_func(epoch=epoch, step=step, model=self.model, batch=batch, **batch)
+                        else:
+                            val_result = val_func(epoch=epoch, step=step, model=self.model, batch=batch)
                         
-                        step_data = val_func(epoch=epoch, step=step, model=self.model, **batch)
-                        step_data_dict[step] = to_numpy(step_data)          
+                        step_data_dict[step] = to_numpy(val_result)          
                 
                     evaluator.eval_val_steps_in_one_epoch(
                         epoch = epoch, 
@@ -109,11 +112,14 @@ class MiniBatchTrainer:
                     step_data_dict: dict[int, dict[str, Any]] = dict() 
                     
                     for step, batch in enumerate(tqdm(test_dataloader, desc='Testing', disable=not tqdm_step), start=1):
-                        assert isinstance(batch, dict)
                         batch = to_device(batch)
+                
+                        if isinstance(batch, dict):
+                            test_result = test_func(epoch=epoch, step=step, model=self.model, batch=batch, **batch)
+                        else:
+                            test_result = test_func(epoch=epoch, step=step, model=self.model, batch=batch)
                         
-                        step_data = test_func(epoch=epoch, step=step, model=self.model, **batch)
-                        step_data_dict[step] = to_numpy(step_data)        
+                        step_data_dict[step] = to_numpy(test_result)          
                 
                     evaluator.eval_test_steps_in_one_epoch(
                         epoch = epoch, 
